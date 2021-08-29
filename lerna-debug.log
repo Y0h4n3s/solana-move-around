@@ -1,0 +1,27 @@
+0 silly argv {
+0 silly argv   _: [ 'run' ],
+0 silly argv   sort: false,
+0 silly argv   stream: true,
+0 silly argv   parallel: true,
+0 silly argv   lernaVersion: '3.22.1',
+0 silly argv   '$0': 'node_modules/.bin/lerna',
+0 silly argv   script: 'dev'
+0 silly argv }
+1 notice cli v3.22.1
+2 verbose rootPath /home/y0h4n3s/Desktop/Development/solana/solana-move-around
+3 info Executing command in 4 packages: "yarn run dev"
+4 silly npmRunScript.stream [ 'dev', [], 'solana-move-around-client' ]
+5 silly getExecOpts /home/y0h4n3s/Desktop/Development/solana/solana-move-around/packages/client undefined
+6 silly npmRunScript.stream [ 'dev', [], 'solana-move-around-dapplib' ]
+7 silly getExecOpts /home/y0h4n3s/Desktop/Development/solana/solana-move-around/packages/dapplib undefined
+8 silly npmRunScript.stream [ 'dev', [], 'solana-move-around-server' ]
+9 silly getExecOpts /home/y0h4n3s/Desktop/Development/solana/solana-move-around/packages/server undefined
+10 silly npmRunScript.stream [ 'dev', [], 'solana-move-around-frame' ]
+11 silly getExecOpts /home/y0h4n3s/Desktop/Development/solana/solana-move-around/workspace/frame undefined
+12 error Error: Command failed: yarn run dev
+12 error
+12 error yarn run v1.22.10
+12 error $ wait-on ../dapplib/src/dapp-config.json && npm run client
+12 error
+12 error     at makeError (/home/y0h4n3s/Desktop/Development/solana/solana-move-around/node_modules/execa/index.js:174:9)
+12 error     at /home/y0h4n3s/Desktop/Development/solana/solana-move-around/node_modules/execa/index.js:278:16
