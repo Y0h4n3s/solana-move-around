@@ -1,90 +1,121 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require('path')
 
+const dotenv = require('dotenv')
+const webpack = require('webpack')
+const { merge } = require('webpack-merge')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+/**
+ * Obtain client id for OAuth link in React
+ *
+ * If in development mode or local production mode, search the .env file for
+ * client id. If using Docker, pass a build arg.
+ */
+const getEnvFromDotEnvFile = dotenv.config()
+let envKeys
 
-module.exports = (env, argv) => {
-  return {
-    entry: ["@babel/polyfill", path.join(__dirname, "src")],
-    output: {
-      path: path.join(
-        __dirname,
-        argv.mode === "development" ? "dist/dapp" : "prod/dapp"
-      ),
-      filename: "bundle.js",
-      publicPath: "/"
-    },
-    module: {
-      rules: [
-        {
-          test: /\.(js|jsx)$/,
-          use: "babel-loader",
-          exclude: /node_modules/
-        },
-        {
-          test: /\.css$/,
-          use: [
-            "style-loader",
-            "css-loader",
-            {
-              loader: "postcss-loader",
-              options: {
-                config: {
-                  path: "./postcss.config.js",
-                },
-              },
-            },
-          ],
-        },
-        {
-          test: /\.(png|svg|jpg|gif)$/,
-          use: [
-            {
-              loader: "file-loader",
-              options: {
-                name: "assets/[name].[ext]?[hash]"
-              }
-            }
-          ]
-        },
-        {
-          test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
-          use: [
-            {
-              loader: "file-loader",
-              options: {
-                name: "assets/fonts/[name].[ext]"
-              }
-            }
-          ]
-        },
-        {
-          test: /\.html$/,
-          use: "html-loader",
-          exclude: /node_modules/
-        }
-      ]
-    },
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: path.join(__dirname, "src/index.html")
-      }),
-      // new MiniCssExtractPlugin()
+if (getEnvFromDotEnvFile.error) {
+  console.log('Getting environment variables from build args for production') // eslint-disable-line
+  envKeys = {
+    'process.env.CLIENT_ID': JSON.stringify(process.env.CLIENT_ID),
+    'process.env.DEMO': JSON.stringify(process.env.DEMO),
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  }
+} else {
+  envKeys = {
+    'process.env.CLIENT_ID': JSON.stringify(getEnvFromDotEnvFile.parsed['CLIENT_ID']),
+    'process.env.DEMO': JSON.stringify(getEnvFromDotEnvFile.parsed['DEMO']),
+  }
+}
+
+let common = {
+  entry: ['/src/index.tsx'],
+  output: {
+    path: path.resolve(__dirname, '../dist'),
+    filename: '[name].[fullhash].bundle.js',
+    publicPath: '/',
+  },
+  module: {
+    rules: [
+      /**
+       * TypeScript (.ts/.tsx files)
+       *
+       * The TypeScript loader will compile all .ts/.tsx files to .js. Babel is
+       * not necessary here since TypeScript is taking care of all transpiling.
+       */
+      {
+        test: /\.ts(x?)$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      // Fonts
+      {
+        test: /\.(woff(2)?|eot|ttf|otf)$/,
+      },
+      // Markdown
+      {
+        test: /\.md$/,
+      },
+      // Images
+      {
+        test: /\.(?:ico|gif|png|jpg|jpeg|webp|svg)$/i,
+      },
     ],
-    resolve: {
-      extensions: [".js", ".jsx"]
+  },
+  resolve: {
+    // Resolve in this order
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx', '.md'],
+    // Allow `@/` to map to `src/client/`
+    alias: {
+      '@': path.resolve(__dirname, '/src/client'),
+      '@resources': path.resolve(__dirname, '/src/resources'),
+      stream: 'stream-browserify',
+      path: 'path-browserify',
     },
-    devtool: "source-map",
-    devServer: {
-      contentBase: path.join(__dirname, "dapp"),
-      port: 5001,
-      host: "0.0.0.0",
-      disableHostCheck: true,
-      stats: "minimal",
-      historyApiFallback: true,
-      open: false,
-      headers: {
-        "Access-Control-Allow-Origin": "*"
-      }
-    }
-  };
-};
+  },
+  plugins: [
+    // Get environment variables in React
+    new webpack.DefinePlugin(envKeys),
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+    }),
+  ],
+}
+
+let dev = {
+  mode: 'development',
+  devtool: 'eval-source-map',
+  module: {
+    rules: [
+      // Styles
+      {
+        test: /\.(scss|css)$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: { sourceMap: true, importLoaders: 1 },
+          },
+        ],
+      },
+    ],
+  },
+  devServer: {
+    historyApiFallback: true,
+    proxy: {
+      '/api': 'http://localhost:5000',
+    },
+    open: true,
+    compress: true,
+    hot: true,
+    port: 3000,
+  },
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new HtmlWebpackPlugin({
+      template: './public/template.html',
+      favicon: './public/favicon.ico',
+    }),
+  ],
+}
+
+module.exports = merge(common, dev)
