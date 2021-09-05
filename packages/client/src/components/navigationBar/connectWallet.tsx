@@ -1,9 +1,9 @@
 import React from 'react';
 import {useDispatch, useSelector, useStore} from "react-redux";
 import {Close} from "@material-ui/icons";
-import {WalletProvider} from "../types";
-import {useAppDispatch} from "../hooks";
-import {CONNECT_SETUP, CONNECT_START} from "../slices/wallet";
+import {WalletProvider} from "../../types";
+import {useAppDispatch} from "../../hooks";
+import {CONNECT_SETUP, CONNECT_START} from "../../slices/wallet";
 
 const wallet_providers: Array<WalletProvider> = [
     {
